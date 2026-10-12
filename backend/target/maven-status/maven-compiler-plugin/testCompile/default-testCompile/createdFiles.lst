@@ -1,0 +1,7 @@
+com\edulive\service\DiscussionServiceTest.class
+com\edulive\service\QuizServiceTest.class
+com\edulive\service\CourseServiceTest.class
+com\edulive\service\EnrollmentServiceTest.class
+com\edulive\service\AuthServiceTest.class
+com\edulive\PasswordGeneratorTest.class
+com\edulive\EduliveApplicationTests.class

@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:edulive}?sslmode=disable
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgrespassword}
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    root: WARN
+    com.edulive: INFO

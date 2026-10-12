@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. PostgreSQL Database Service
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: edulive_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_DB: edulive
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d edulive"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - edulive-network
+
+  # ----------------------------------------------------------------------------
+  # 2. Spring Boot 3 Backend Service
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../deploy/backend/Dockerfile
+    container_name: edulive_backend_prod
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/edulive
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      APP_JWT_SECRET: c2VjdXJlX2p3dF9zZWNyZXRfa2V5X2VkdWxpdmVfZG9hbl8yMDI2X21vbm9yZXBvX3Byb2R1Y3Rpb24=
+      APP_JWT_ACCESS_EXPIRATION_MS: 86400000
+      APP_JWT_REFRESH_EXPIRATION_MS: 604800000
+      APP_CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://127.0.0.1
+    ports:
+      - "8088:8088"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - edulive-network
+
+  # ----------------------------------------------------------------------------
+  # 3. React Vite SPA + Nginx Reverse Proxy Service
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../deploy/frontend/Dockerfile
+    container_name: edulive_frontend_prod
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - edulive-network
+
+networks:
+  edulive-network:
+    driver: bridge
+
+volumes:
+  pgdata_prod:
+    driver: local
